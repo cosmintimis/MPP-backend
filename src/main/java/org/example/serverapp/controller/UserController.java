@@ -1,6 +1,7 @@
 package org.example.serverapp.controller;
 
 import lombok.AllArgsConstructor;
+import org.example.serverapp.entity.CreateUser;
 import org.example.serverapp.entity.User;
 import org.example.serverapp.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping
-    public ResponseEntity<User> addUser(@RequestBody User user) {
+    public ResponseEntity<User> addUser(@RequestBody CreateUser user) {
         return new ResponseEntity<>(userService.addUser(user), HttpStatus.CREATED);
     }
 

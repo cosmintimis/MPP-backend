@@ -1,5 +1,6 @@
 package org.example.serverapp.service;
 
+import org.example.serverapp.entity.CreateUser;
 import org.example.serverapp.entity.User;
 import org.example.serverapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +18,12 @@ public class UserService {
     }
 
 
-    public User addUser(User user) {
-        if (userRepository.existsById(user.getId())) {
-            throw new RuntimeException("User with id " + user.getId() + " already exists");
-        }
-       // UserValidation.validate(user);
+    public User addUser(CreateUser user) {
 
-        userRepository.add(user);
-        return user;
+        User newUser = new User(getAllUsers().size() + 1, user.getUsername(), user.getPassword(), user.getEmail(), user.getAvatar(), user.getBirthdate(), user.getRating(), user.getAddress());
+       // UserValidation.validate(user);
+        userRepository.add(newUser);
+        return newUser;
     }
 
     public User getUserById(Integer id) {
