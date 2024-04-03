@@ -1,8 +1,10 @@
 package org.example.serverapp.service;
 
-import org.example.serverapp.entity.CreateUser;
+import org.example.serverapp.dto.UserDto;
 import org.example.serverapp.entity.User;
+import org.example.serverapp.mapper.UserMapper;
 import org.example.serverapp.repository.UserRepository;
+import org.example.serverapp.validation.UserValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,35 +20,36 @@ public class UserService {
     }
 
 
-    public User addUser(CreateUser user) {
-
-        User newUser = new User(getAllUsers().size() + 1, user.getUsername(), user.getPassword(), user.getEmail(), user.getAvatar(), user.getBirthdate(), user.getRating(), user.getAddress());
-       // UserValidation.validate(user);
+    public UserDto addUser(UserDto user) {
+        User newUser = new User(userRepository.firstFreeId(), user.getUsername(), user.getPassword(), user.getEmail(), user.getAvatar(), user.getBirthdate(), user.getRating(), user.getAddress());
+        UserValidation.validate(newUser);
         userRepository.add(newUser);
-        return newUser;
+        return UserMapper.mapToUserDto(newUser);
     }
 
-    public User getUserById(Integer id) {
+    public UserDto getUserById(Integer id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User with id " + id + " not found");
         }
-        return userRepository.getById(id);
+        return UserMapper.mapToUserDto(userRepository.getById(id));
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.getAll();
+    public List<UserDto> getAllUsers() {
+        return userRepository.getAll().stream()
+                .map(UserMapper::mapToUserDto)
+                .toList();
     }
 
-    public User updateUser(Integer id, User updatedUser) {
+    public UserDto updateUser(Integer id, UserDto updatedUser) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User with id " + id + " not found");
         }
 
-        // UserValidation.validate(updatedUser);
+        User user = UserMapper.mapToUser(updatedUser);
+        UserValidation.validate(user);
+        userRepository.update(id, user);
 
-        userRepository.update(id, updatedUser);
-
-        return userRepository.getById(id);
+        return updatedUser;
     }
 
     public void deleteUser(Integer id) {

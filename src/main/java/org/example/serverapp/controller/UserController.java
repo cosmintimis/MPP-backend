@@ -1,7 +1,7 @@
 package org.example.serverapp.controller;
 
 import lombok.AllArgsConstructor;
-import org.example.serverapp.entity.CreateUser;
+import org.example.serverapp.dto.UserDto;
 import org.example.serverapp.entity.User;
 import org.example.serverapp.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -19,22 +19,22 @@ public class UserController {
     private UserService userService;
 
     @PostMapping
-    public ResponseEntity<User> addUser(@RequestBody CreateUser user) {
+    public ResponseEntity<UserDto> addUser(@RequestBody UserDto user) {
         return new ResponseEntity<>(userService.addUser(user), HttpStatus.CREATED);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
+    public ResponseEntity<UserDto> getUserById(@PathVariable Integer id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User updatedUser) {
+    public ResponseEntity<UserDto> updateUser(@PathVariable Integer id, @RequestBody UserDto updatedUser) {
         return ResponseEntity.ok(userService.updateUser(id, updatedUser));
     }
 

@@ -27,7 +27,10 @@ public class UserRepository implements IRepository<User, Integer> {
             new User(7, "Dan Pop", "parola7", "dan.pop@gmail.com", "https://robohash.org/0b456df7de7f1f41c3da509934272113?set=set4&bgset=&size=400x400",
                     LocalDate.parse("2003-01-01"), 6.6, "address7"),
             new User(8, "Darius Hantig", "parola8", "darius.hantig@gmail.com", "https://robohash.org/1c375eb51d2e0786a06e94d7bbf51233?set=set4&bgset=&size=400x400",
-                    LocalDate.parse("2003-01-01"), 7.7, "address8")
+                    LocalDate.parse("2003-01-01"), 7.7, "address8"),
+            new User(9, "Luca Pop", "parola9", "luca.pop@gmail.com", "https://robohash.org/user9", LocalDate.parse("2003-05-21"), 8.78, "address9"),
+            new User(10, "Codrut Hojda", "parola10", "codrut.hojda@gmail.com", "https://robohash.org/user10", LocalDate.parse("2006-08-09"), 9.66, "address10"),
+            new User(11, "Nicolae Petri", "parola11", "nicu.petri@gmail.com", "https://robohash.org/nicup", LocalDate.parse("2003-06-14"), 9.95, "address11")
 
 
 
@@ -75,5 +78,9 @@ public class UserRepository implements IRepository<User, Integer> {
     @Override
     public List<User> getAll() {
         return users;
+    }
+
+    public int firstFreeId(){
+        return users.size() + 1;
     }
 }
