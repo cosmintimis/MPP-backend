@@ -8,6 +8,8 @@ import org.example.serverapp.validation.UserValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -39,6 +41,17 @@ public class UserService {
                 .map(UserMapper::mapToUserDto)
                 .toList();
     }
+
+    public List<UserDto> getAllUsersSorted() {
+
+        List<User> sortedUsers = new ArrayList<>(userRepository.getAll());
+
+        return sortedUsers.stream()
+                .sorted(Comparator.comparing(User::getUsername))
+                .map(UserMapper::mapToUserDto)
+                .toList();
+    }
+
 
     public UserDto updateUser(Integer id, UserDto updatedUser) {
         if (!userRepository.existsById(id)) {

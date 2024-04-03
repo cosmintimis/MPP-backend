@@ -7,8 +7,22 @@ import org.example.serverapp.service.UserService;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class UserServiceTest {
+
+
+    @Test
+    public void testGetAllUsersSorted()
+    {
+        final UserRepository userRepository = new UserRepository();
+        final UserService userService = new UserService(userRepository);
+
+        List<UserDto> sortedUsers = userService.getAllUsersSorted();
+
+        assert sortedUsers.get(0).getUsername().equals("Alex Popescu");
+        assert sortedUsers.get(10).getUsername().equals("Roberto Pitic");
+    }
     @Test
     public void testAddUser() {
         final UserRepository userRepository = new UserRepository();
@@ -361,5 +375,7 @@ public class UserServiceTest {
 
 
     }
+
+
 
 }

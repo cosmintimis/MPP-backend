@@ -29,8 +29,12 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<List<UserDto>> getAllUsers(@RequestParam(required = false, defaultValue = "false") String sorted) {
+        if(sorted.equals("false"))
+            return ResponseEntity.ok(userService.getAllUsers());
+        else
+            return ResponseEntity.ok(userService.getAllUsersSorted());
+
     }
 
     @PutMapping("{id}")
@@ -43,4 +47,6 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.ok("User with id " + id + " deleted successfully");
     }
+
+
 }
