@@ -81,6 +81,6 @@ public class UserRepository implements IRepository<User, Integer> {
     }
 
     public int firstFreeId(){
-        return users.size() + 1;
+        return users.stream().map(User::getId).max(Integer::compareTo).get() + 1;
     }
 }
