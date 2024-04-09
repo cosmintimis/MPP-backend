@@ -51,12 +51,6 @@ public class UserService {
                     .toList();
             size = users.size();
         }
-        if (limit != null && skip != null) {
-            users = users.stream()
-                    .skip(skip)
-                    .limit(limit)
-                    .toList();
-        }
         if (sortedByUsername != null) {
             if(sortedByUsername.equals("ascending"))
                 users = users.stream()
@@ -66,6 +60,12 @@ public class UserService {
                 users = users.stream()
                         .sorted(Comparator.comparing(User::getUsername).reversed())
                         .toList();
+        }
+        if (limit != null && skip != null) {
+            users = users.stream()
+                    .skip(skip)
+                    .limit(limit)
+                    .toList();
         }
         return new UserListWithSizeDto(users.stream().map(UserMapper::mapToUserDto).toList(), size);
     }
