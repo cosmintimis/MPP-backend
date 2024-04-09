@@ -21,8 +21,8 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        assertThat(userService.getAllUsers(null, "cosmin", null, null).size()).isEqualTo(1);
-        assertThat(userService.getAllUsers(null, "pop", null, null).size()).isEqualTo(6);
+        assertThat(userService.getUserListWithSize(null, "cosmin", null, null).getSize()).isEqualTo(1);
+        assertThat(userService.getUserListWithSize(null, "pop", null, null).getSize()).isEqualTo(6);
 
     }
 
@@ -31,8 +31,8 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        assertThat(userService.getAllUsers("ascending", null, null, null).get(0).getUsername()).isEqualTo("Alex Popescu");
-        assertThat(userService.getAllUsers("descending", null, null, null).get(0).getUsername()).isEqualTo("Roberto Pitic");
+        assertThat(userService.getUserListWithSize("ascending", null, null, null).getUsers().get(0).getUsername()).isEqualTo("Alex Popescu");
+        assertThat(userService.getUserListWithSize("descending", null, null, null).getUsers().get(0).getUsername()).isEqualTo("Roberto Pitic");
     }
 
     @Test
@@ -40,11 +40,11 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        assertThat(userService.getAllUsers(null, null, 3, 0).size()).isEqualTo(3);
-        assertThat(userService.getAllUsers(null, null, 3, 3).size()).isEqualTo(3);
-        assertThat(userService.getAllUsers(null, null, 3, 6).size()).isEqualTo(3);
-        assertThat(userService.getAllUsers(null, null, 3, 9).size()).isEqualTo(2);
-        assertThat(userService.getAllUsers(null, null, 3, 12).size()).isEqualTo(0);
+        assertThat(userService.getUserListWithSize(null, null, 3, 0).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 3).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 6).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 9).getUsers().size()).isEqualTo(2);
+        assertThat(userService.getUserListWithSize(null, null, 3, 12).getUsers().size()).isEqualTo(0);
     }
 
 
@@ -68,7 +68,7 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        int currentSize = userService.getAllUsers().size();
+        int currentSize = userService.getUserListWithSize().size();
 
         UserDto newUserDto = new UserDto(userRepository.firstFreeId(), "test2024", "test2024", "test2024", "test2024", null, 0.1, "test2024");
 
@@ -87,7 +87,7 @@ public class UserServiceTest {
         );
 
         userService.addUser(goodUserDto);
-        assertThat(userService.getAllUsers().size()).isEqualTo(currentSize + 1);
+        assertThat(userService.getUserListWithSize().size()).isEqualTo(currentSize + 1);
 
         UserDto invalidUsername = new UserDto(
                 userRepository.firstFreeId(),
@@ -204,7 +204,7 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        assertThat(userService.getAllUsers().size()).isEqualTo(11);
+        assertThat(userService.getUserListWithSize().size()).isEqualTo(11);
     }
 
     @Test
@@ -212,7 +212,7 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        int currentSize = userService.getAllUsers().size();
+        int currentSize = userService.getUserListWithSize().size();
 
         assertThatThrownBy(() -> userService.deleteUser(100))
                 .isInstanceOf(Exception.class)
@@ -220,7 +220,7 @@ public class UserServiceTest {
 
         userService.deleteUser(1);
 
-        assertThat(userService.getAllUsers().size()).isEqualTo(currentSize - 1);
+        assertThat(userService.getUserListWithSize().size()).isEqualTo(currentSize - 1);
     }
 
     @Test

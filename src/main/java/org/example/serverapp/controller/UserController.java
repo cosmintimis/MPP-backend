@@ -2,13 +2,13 @@ package org.example.serverapp.controller;
 
 import lombok.AllArgsConstructor;
 import org.example.serverapp.dto.UserDto;
+import org.example.serverapp.dto.UserListWithSizeDto;
 import org.example.serverapp.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Map;
 
 @CrossOrigin("*")
@@ -30,10 +30,10 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers(@RequestParam(required = false) String sortedByUsername,
-                                                     @RequestParam(required = false) String searchByUsername,
-                                                     @RequestParam(required = false) Integer limit,
-                                                     @RequestParam(required = false) Integer skip){
+    public ResponseEntity<UserListWithSizeDto> getAllUsers(@RequestParam(required = false) String sortedByUsername,
+                                                           @RequestParam(required = false) String searchByUsername,
+                                                           @RequestParam(required = false) Integer limit,
+                                                           @RequestParam(required = false) Integer skip){
 
         if(sortedByUsername != null && !sortedByUsername.isEmpty() && (!sortedByUsername.equals("ascending") && !sortedByUsername.equals("descending"))){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid sortedByUsername parameter");
@@ -51,7 +51,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid limit or skip parameter");
         }
 
-        return ResponseEntity.ok(userService.getAllUsers(sortedByUsername, searchByUsername, limit, skip));
+        return ResponseEntity.ok(userService.getUserListWithSize(sortedByUsername, searchByUsername, limit, skip));
 
     }
 

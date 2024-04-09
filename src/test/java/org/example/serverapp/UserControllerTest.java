@@ -3,7 +3,7 @@ package org.example.serverapp;
 
 import org.example.serverapp.controller.UserController;
 import org.example.serverapp.dto.UserDto;
-import org.example.serverapp.entity.User;
+import org.example.serverapp.dto.UserListWithSizeDto;
 import org.example.serverapp.service.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,19 +40,20 @@ class UserControllerTest {
     void testGetAll() throws Exception {
         UserDto user1 =  new UserDto(1, "Cosmin Timis", "parolaaiabuna", "cosmin.timis@gmail.com", "https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400",
                 LocalDate.parse("2003-01-01"), 8.8, "address1");
-        when(userService.getAllUsers(null, null, null, null)).thenReturn(List.of(user1));
+        when(userService.getUserListWithSize(null, null, null, null)).thenReturn(new UserListWithSizeDto(List.of(user1), 1));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.size()", Matchers.is(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id", Matchers.is(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].username", Matchers.is("Cosmin Timis")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].password", Matchers.is("parolaaiabuna")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].email", Matchers.is("cosmin.timis@gmail.com")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].avatar", Matchers.is("https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].birthdate", Matchers.is("2003-01-01")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].rating", Matchers.is(8.8)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].address", Matchers.is("address1")));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.size()", Matchers.is(2)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.users[0].id", Matchers.is(1)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.users[0].username", Matchers.is("Cosmin Timis")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.users[0].password", Matchers.is("parolaaiabuna")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.users[0].email", Matchers.is("cosmin.timis@gmail.com")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.users[0].avatar", Matchers.is("https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.users[0].birthdate", Matchers.is("2003-01-01")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.users[0].rating", Matchers.is(8.8)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.users[0].address", Matchers.is("address1")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.size", Matchers.is(1)));
 
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=&searchByUsername=&limit=&skip="))

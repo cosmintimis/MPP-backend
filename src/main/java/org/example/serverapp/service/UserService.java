@@ -1,6 +1,7 @@
 package org.example.serverapp.service;
 
 import org.example.serverapp.dto.UserDto;
+import org.example.serverapp.dto.UserListWithSizeDto;
 import org.example.serverapp.entity.User;
 import org.example.serverapp.mapper.UserMapper;
 import org.example.serverapp.repository.UserRepository;
@@ -34,19 +35,21 @@ public class UserService {
         return UserMapper.mapToUserDto(userRepository.getById(id));
     }
 
-    public List<UserDto> getAllUsers() {
+    public List<UserDto> getUserListWithSize() {
         return userRepository.getAll().stream()
                 .map(UserMapper::mapToUserDto)
                 .toList();
     }
 
 
-    public List<UserDto> getAllUsers(String sortedByUsername, String searchByUsername, Integer limit, Integer skip) {
+    public UserListWithSizeDto getUserListWithSize(String sortedByUsername, String searchByUsername, Integer limit, Integer skip) {
         List<User> users = new ArrayList<>(userRepository.getAll());
+        int size = users.size();
         if (searchByUsername != null) {
             users = users.stream()
                     .filter(user -> user.getUsername().toLowerCase().contains(searchByUsername.toLowerCase()))
                     .toList();
+            size = users.size();
         }
         if (limit != null && skip != null) {
             users = users.stream()
@@ -64,9 +67,7 @@ public class UserService {
                         .sorted(Comparator.comparing(User::getUsername).reversed())
                         .toList();
         }
-        return users.stream()
-                .map(UserMapper::mapToUserDto)
-                .toList();
+        return new UserListWithSizeDto(users.stream().map(UserMapper::mapToUserDto).toList(), size);
     }
 
 
