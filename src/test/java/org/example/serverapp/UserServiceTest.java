@@ -1,28 +1,68 @@
 package org.example.serverapp;
 
 import org.example.serverapp.dto.UserDto;
-import org.example.serverapp.entity.User;
 import org.example.serverapp.repository.UserRepository;
 import org.example.serverapp.service.UserService;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.*;
+
 
 public class UserServiceTest {
 
 
+
+
     @Test
-    public void testGetAllUsersSorted()
-    {
+    public void testGetSearchedUsersByUsername(){
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        List<UserDto> sortedUsers = userService.getAllUsersSorted();
+        assertThat(userService.getAllUsers(null, "cosmin", null, null).size()).isEqualTo(1);
+        assertThat(userService.getAllUsers(null, "pop", null, null).size()).isEqualTo(6);
 
-        assert sortedUsers.get(0).getUsername().equals("Alex Popescu");
-        assert sortedUsers.get(10).getUsername().equals("Roberto Pitic");
     }
+
+    @Test
+    public void testGetSortedUsersByUsername(){
+        final UserRepository userRepository = new UserRepository();
+        final UserService userService = new UserService(userRepository);
+
+        assertThat(userService.getAllUsers("ascending", null, null, null).get(0).getUsername()).isEqualTo("Alex Popescu");
+        assertThat(userService.getAllUsers("descending", null, null, null).get(0).getUsername()).isEqualTo("Roberto Pitic");
+    }
+
+    @Test
+    public void testGetPaginationUsers(){
+        final UserRepository userRepository = new UserRepository();
+        final UserService userService = new UserService(userRepository);
+
+        assertThat(userService.getAllUsers(null, null, 3, 0).size()).isEqualTo(3);
+        assertThat(userService.getAllUsers(null, null, 3, 3).size()).isEqualTo(3);
+        assertThat(userService.getAllUsers(null, null, 3, 6).size()).isEqualTo(3);
+        assertThat(userService.getAllUsers(null, null, 3, 9).size()).isEqualTo(2);
+        assertThat(userService.getAllUsers(null, null, 3, 12).size()).isEqualTo(0);
+    }
+
+
+    @Test
+    public void testGetBirthsPerYear() {
+        final UserRepository userRepository = new UserRepository();
+        final UserService userService = new UserService(userRepository);
+
+        Map<Integer, Integer> birthsPerYear = userService.getBirthsPerYear();
+
+        assertThat(birthsPerYear.get(2003)).isEqualTo(6);
+        assertThat(birthsPerYear.get(2004)).isEqualTo(3);
+        assertThat(birthsPerYear.get(2009)).isEqualTo(1);
+        assertThat(birthsPerYear.get(2006)).isEqualTo(1);
+
+    }
+
+
     @Test
     public void testAddUser() {
         final UserRepository userRepository = new UserRepository();
@@ -30,13 +70,10 @@ public class UserServiceTest {
 
         int currentSize = userService.getAllUsers().size();
 
-        UserDto newUserDto = new UserDto(userRepository.firstFreeId(), "test", "test", "test", "test", null, 0.0, "test");
-        try {
-            userService.addUser(newUserDto);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        UserDto newUserDto = new UserDto(userRepository.firstFreeId(), "test2024", "test2024", "test2024", "test2024", null, 0.1, "test2024");
+
+        assertThatThrownBy(() -> userService.addUser(newUserDto))
+                .isInstanceOf(Exception.class);
 
         UserDto goodUserDto = new UserDto(
                 userRepository.firstFreeId(),
@@ -49,15 +86,8 @@ public class UserServiceTest {
                 "address test"
         );
 
-        try {
-            userService.addUser(goodUserDto);
-            assert true;
-        } catch (Exception e) {
-            assert false;
-        }
-
-        assert userService.getAllUsers().size() == currentSize + 1;
-
+        userService.addUser(goodUserDto);
+        assertThat(userService.getAllUsers().size()).isEqualTo(currentSize + 1);
 
         UserDto invalidUsername = new UserDto(
                 userRepository.firstFreeId(),
@@ -123,48 +153,27 @@ public class UserServiceTest {
                 1.7,
                 "");
 
-        try {
-            userService.addUser(invalidUsername);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
-        try {
-            userService.addUser(invalidPassword);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
-        try {
-            userService.addUser(invalidEmail);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
-        try {
-            userService.addUser(invalidAvatar);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
-        try {
-            userService.addUser(invalidBirthdate);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
-        try {
-            userService.addUser(invalidRating);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
-        try {
-            userService.addUser(invalidAddress);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.addUser(invalidUsername))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Username must be at least 6 characters long");
+        assertThatThrownBy(() -> userService.addUser(invalidPassword))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Password must be at least 6 characters long");
+        assertThatThrownBy(() -> userService.addUser(invalidEmail))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Invalid email address");
+        assertThatThrownBy(() -> userService.addUser(invalidAvatar))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Avatar must be at least 1 character long");
+        assertThatThrownBy(() -> userService.addUser(invalidBirthdate))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Birthdate must be set");
+        assertThatThrownBy(() -> userService.addUser(invalidRating))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Rating must be between 0 and 10");
+        assertThatThrownBy(() -> userService.addUser(invalidAddress))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Address must be at least 1 character long");
 
     }
 
@@ -175,21 +184,19 @@ public class UserServiceTest {
 
         UserDto firstUser = userService.getUserById(1);
 
-        assert firstUser.getId() == 1;
-        assert firstUser.getUsername().equals("Cosmin Timis");
-        assert firstUser.getPassword().equals("parolaaiabuna");
-        assert firstUser.getEmail().equals("cosmin.timis@gmail.com");
-        assert firstUser.getAvatar().equals("https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400");
-        assert firstUser.getBirthdate().equals(LocalDate.parse("2003-01-01"));
-        assert firstUser.getRating() == 8.8;
-        assert firstUser.getAddress().equals("address1");
+        assertThat(firstUser.getId()).isEqualTo(1);
+        assertThat(firstUser.getUsername()).isEqualTo("Cosmin Timis");
+        assertThat(firstUser.getPassword()).isEqualTo("parolaaiabuna");
+        assertThat(firstUser.getEmail()).isEqualTo("cosmin.timis@gmail.com");
+        assertThat(firstUser.getAvatar()).isEqualTo("https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400");
+        assertThat(firstUser.getBirthdate()).isEqualTo(LocalDate.parse("2003-01-01"));
+        assertThat(firstUser.getRating()).isEqualTo(8.8);
+        assertThat(firstUser.getAddress()).isEqualTo("address1");
 
-        try {
-            userService.getUserById(100);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+
+        assertThatThrownBy(() -> userService.getUserById(100))
+                .isInstanceOf(Exception.class)
+                .hasMessage("User with id 100 not found");
     }
 
     @Test
@@ -197,7 +204,7 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        assert userService.getAllUsers().size() == 11;
+        assertThat(userService.getAllUsers().size()).isEqualTo(11);
     }
 
     @Test
@@ -207,16 +214,13 @@ public class UserServiceTest {
 
         int currentSize = userService.getAllUsers().size();
 
-        try {
-            userService.deleteUser(100);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.deleteUser(100))
+                .isInstanceOf(Exception.class)
+                .hasMessage("User with id 100 not found");
 
         userService.deleteUser(1);
 
-        assert userService.getAllUsers().size() == currentSize - 1;
+        assertThat(userService.getAllUsers().size()).isEqualTo(currentSize - 1);
     }
 
     @Test
@@ -297,54 +301,33 @@ public class UserServiceTest {
                 ""
         );
 
-        try {
-            userService.updateUser(firstUser.getId(), updateUserInvalidUsername);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidUsername))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Username must be at least 6 characters long");
 
-        try {
-            userService.updateUser(firstUser.getId(), updateUserInvalidPassword);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidPassword))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Password must be at least 6 characters long");
 
-        try {
-            userService.updateUser(firstUser.getId(), updateUserInvalidEmail);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidEmail))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Invalid email address");
 
-        try {
-            userService.updateUser(firstUser.getId(), updateUserInvalidAvatar);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidAvatar))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Avatar must be at least 1 character long");
 
-        try {
-            userService.updateUser(firstUser.getId(), updateUserInvalidBirthdate);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidBirthdate))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Birthdate must be set");
 
-        try {
-            userService.updateUser(firstUser.getId(), updateUserInvalidRating);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidRating))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Rating must be between 0 and 10");
 
-        try {
-            userService.updateUser(firstUser.getId(), updateUserInvalidAddress);
-            assert false;
-        } catch (Exception e) {
-            assert true;
-        }
+        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidAddress))
+                .isInstanceOf(Exception.class)
+                .hasMessage("Address must be at least 1 character long");
 
         UserDto updateUser = new UserDto(
                 firstUser.getId(),
@@ -356,26 +339,22 @@ public class UserServiceTest {
                 9.9,
                 "adresanoua");
 
-        try {
-            userService.updateUser(firstUser.getId(), updateUser);
-            assert true;
-        } catch (Exception e) {
-            assert false;
-        }
 
+        userService.updateUser(firstUser.getId(), updateUser);
         UserDto firstUserUpdated = userService.getUserById(1);
 
-        assert firstUserUpdated.getUsername().equals("alexandru horj");
-        assert firstUserUpdated.getPassword().equals("parolabuna");
-        assert firstUserUpdated.getEmail().equals("test@gmail.ro");
-        assert firstUserUpdated.getAvatar().equals("avatarnou");
-        assert firstUserUpdated.getBirthdate().equals(LocalDate.of(2000, 1, 1));
-        assert firstUserUpdated.getRating() == 9.9;
-        assert firstUserUpdated.getAddress().equals("adresanoua");
+        assertThat(firstUserUpdated.getId()).isEqualTo(1);
+        assertThat(firstUserUpdated.getUsername()).isEqualTo("alexandru horj");
+        assertThat(firstUserUpdated.getPassword()).isEqualTo("parolabuna");
+        assertThat(firstUserUpdated.getEmail()).isEqualTo("test@gmail.ro");
+        assertThat(firstUserUpdated.getAvatar()).isEqualTo("avatarnou");
+        assertThat(firstUserUpdated.getBirthdate()).isEqualTo(LocalDate.of(2000, 1, 1));
+        assertThat(firstUserUpdated.getRating()).isEqualTo(9.9);
+        assertThat(firstUserUpdated.getAddress()).isEqualTo("adresanoua");
+
 
 
     }
-
 
 
 }

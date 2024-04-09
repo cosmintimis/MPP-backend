@@ -2,13 +2,14 @@ package org.example.serverapp.controller;
 
 import lombok.AllArgsConstructor;
 import org.example.serverapp.dto.UserDto;
-import org.example.serverapp.entity.User;
 import org.example.serverapp.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin("*")
 @AllArgsConstructor
@@ -29,12 +30,34 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers(@RequestParam(required = false, defaultValue = "false") String sorted) {
-        if(sorted.equals("false"))
-            return ResponseEntity.ok(userService.getAllUsers());
-        else
-            return ResponseEntity.ok(userService.getAllUsersSorted());
+    public ResponseEntity<List<UserDto>> getAllUsers(@RequestParam(required = false) String sortedByUsername,
+                                                     @RequestParam(required = false) String searchByUsername,
+                                                     @RequestParam(required = false) Integer limit,
+                                                     @RequestParam(required = false) Integer skip){
 
+        if(sortedByUsername != null && (!sortedByUsername.equals("ascending") && !sortedByUsername.equals("descending"))){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid sortedByUsername parameter");
+        }
+
+        if(limit != null && skip == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "If limit is provided, skip must be provided too");
+        }
+
+        if(limit == null && skip != null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "If skip is provided, limit must be provided too");
+        }
+
+        if(limit != null && (limit < 0 || skip < 0 || limit > 1000)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid limit or skip parameter");
+        }
+
+        return ResponseEntity.ok(userService.getAllUsers(sortedByUsername, searchByUsername, limit, skip));
+
+    }
+
+    @GetMapping("/births-per-year")
+    public ResponseEntity<Map<Integer, Integer>> getBirthsPerYear() {
+        return ResponseEntity.ok(userService.getBirthsPerYear());
     }
 
     @PutMapping("{id}")

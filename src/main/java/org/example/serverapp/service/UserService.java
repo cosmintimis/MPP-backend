@@ -8,9 +8,7 @@ import org.example.serverapp.validation.UserValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -42,12 +40,31 @@ public class UserService {
                 .toList();
     }
 
-    public List<UserDto> getAllUsersSorted() {
 
-        List<User> sortedUsers = new ArrayList<>(userRepository.getAll());
-
-        return sortedUsers.stream()
-                .sorted(Comparator.comparing(User::getUsername))
+    public List<UserDto> getAllUsers(String sortedByUsername, String searchByUsername, Integer limit, Integer skip) {
+        List<User> users = new ArrayList<>(userRepository.getAll());
+        if (searchByUsername != null) {
+            users = users.stream()
+                    .filter(user -> user.getUsername().toLowerCase().contains(searchByUsername.toLowerCase()))
+                    .toList();
+        }
+        if (limit != null && skip != null) {
+            users = users.stream()
+                    .skip(skip)
+                    .limit(limit)
+                    .toList();
+        }
+        if (sortedByUsername != null) {
+            if(sortedByUsername.equals("ascending"))
+                users = users.stream()
+                        .sorted(Comparator.comparing(User::getUsername))
+                        .toList();
+            else if(sortedByUsername.equals("descending"))
+                users = users.stream()
+                        .sorted(Comparator.comparing(User::getUsername).reversed())
+                        .toList();
+        }
+        return users.stream()
                 .map(UserMapper::mapToUserDto)
                 .toList();
     }
@@ -70,5 +87,27 @@ public class UserService {
             throw new RuntimeException("User with id " + id + " not found");
         }
         userRepository.delete(id);
+    }
+
+    public Map<Integer, Integer> getBirthsPerYear() {
+        List<User> users = userRepository.getAll();
+
+        Map<Integer, Integer> birthsPerYear = new HashMap<>();
+
+        users = users.stream()
+                .sorted(Comparator.comparing(User::getBirthdate))
+                .toList();
+
+        for (User user : users) {
+            int year = user.getBirthdate().getYear();
+            if(birthsPerYear.containsKey(year)){
+                birthsPerYear.put(year, birthsPerYear.get(year) + 1);
+            } else {
+                birthsPerYear.put(year, 1);
+            }
+        }
+
+        return birthsPerYear;
+
     }
 }
