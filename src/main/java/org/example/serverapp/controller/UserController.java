@@ -35,7 +35,7 @@ public class UserController {
                                                      @RequestParam(required = false) Integer limit,
                                                      @RequestParam(required = false) Integer skip){
 
-        if(sortedByUsername != null && (!sortedByUsername.equals("ascending") && !sortedByUsername.equals("descending"))){
+        if(sortedByUsername != null && !sortedByUsername.isEmpty() && (!sortedByUsername.equals("ascending") && !sortedByUsername.equals("descending"))){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid sortedByUsername parameter");
         }
 

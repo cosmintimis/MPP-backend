@@ -21,8 +21,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
@@ -55,6 +54,41 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].birthdate", Matchers.is("2003-01-01")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].rating", Matchers.is(8.8)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].address", Matchers.is("address1")));
+
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=&searchByUsername=&limit=&skip="))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=ascending&searchByUsername=&limit=&skip="))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=descending&searchByUsername=&limit=&skip="))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=random&searchByUsername=&limit=&skip="))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=&searchByUsername=&limit=2&skip=2"))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=&searchByUsername=&limit=&skip=2"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=&searchByUsername=&limit=2&skip="))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=&searchByUsername=&limit=-2&skip=2"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=&searchByUsername=&limit=2&skip=-2"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users?sortedByUsername=&searchByUsername=&limit=10000&skip=2"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+
+
     }
 
     @Test
