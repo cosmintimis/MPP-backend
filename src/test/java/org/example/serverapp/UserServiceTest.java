@@ -36,14 +36,22 @@ public class UserServiceTest {
     }
 
     @Test
-    public void testGetPaginationUsers(){
+    public void testGetUsersWithLimitAndSkip(){
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
         assertThat(userService.getUserListWithSize(null, null, 3, 0).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 0).getUsers().get(0).getUsername()).isEqualTo("Cosmin Timis");
+
         assertThat(userService.getUserListWithSize(null, null, 3, 3).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 3).getUsers().get(0).getUsername()).isEqualTo("Mihai Pop");
+
         assertThat(userService.getUserListWithSize(null, null, 3, 6).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 6).getUsers().get(0).getUsername()).isEqualTo("Dan Pop");
+
         assertThat(userService.getUserListWithSize(null, null, 3, 9).getUsers().size()).isEqualTo(2);
+        assertThat(userService.getUserListWithSize(null, null, 3, 9).getUsers().get(0).getUsername()).isEqualTo("Codrut Hojda");
+
         assertThat(userService.getUserListWithSize(null, null, 3, 12).getUsers().size()).isEqualTo(0);
     }
 
