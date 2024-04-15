@@ -40,7 +40,7 @@ class UserControllerTest {
     void testGetAll() throws Exception {
         UserDto user1 =  new UserDto(1, "Cosmin Timis", "parolaaiabuna", "cosmin.timis@gmail.com", "https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400",
                 LocalDate.parse("2003-01-01"), 8.8, "address1");
-        when(userService.getUserListWithSize(null, null, null, null)).thenReturn(new UserListWithSizeDto(List.of(user1), 1));
+        when(userService.getUserListWithSize(null, null, null, null, null, null)).thenReturn(new UserListWithSizeDto(List.of(user1), 1));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users"))
                 .andExpect(MockMvcResultMatchers.status().isOk())

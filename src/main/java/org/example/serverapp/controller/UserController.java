@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @CrossOrigin("*")
@@ -33,7 +34,10 @@ public class UserController {
     public ResponseEntity<UserListWithSizeDto> getAllUsers(@RequestParam(required = false) String sortedByUsername,
                                                            @RequestParam(required = false) String searchByUsername,
                                                            @RequestParam(required = false) Integer limit,
-                                                           @RequestParam(required = false) Integer skip){
+                                                           @RequestParam(required = false) Integer skip,
+                                                           @RequestParam(required = false) LocalDate startBirthDate,
+                                                           @RequestParam(required = false) LocalDate endBirthDate
+                                                           ){
 
         if(sortedByUsername != null && !sortedByUsername.isEmpty() && (!sortedByUsername.equals("ascending") && !sortedByUsername.equals("descending"))){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid sortedByUsername parameter");
@@ -51,7 +55,15 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid limit or skip parameter");
         }
 
-        return ResponseEntity.ok(userService.getUserListWithSize(sortedByUsername, searchByUsername, limit, skip));
+        if(startBirthDate == null && endBirthDate != null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "If endBirthDate is provided, startBirthDate must be provided too");
+        }
+
+        if(startBirthDate != null && endBirthDate == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "If startBirthDate is provided, endBirthDate must be provided too");
+        }
+
+        return ResponseEntity.ok(userService.getUserListWithSize(sortedByUsername, searchByUsername, limit, skip, startBirthDate, endBirthDate));
 
     }
 
@@ -62,6 +74,7 @@ public class UserController {
 
     @PutMapping("{id}")
     public ResponseEntity<UserDto> updateUser(@PathVariable Integer id, @RequestBody UserDto updatedUser) {
+        /// handle bad request and not found id
         return ResponseEntity.ok(userService.updateUser(id, updatedUser));
     }
 

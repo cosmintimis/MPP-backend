@@ -5,7 +5,9 @@ import org.example.serverapp.repository.UserRepository;
 import org.example.serverapp.service.UserService;
 import org.junit.jupiter.api.Test;
 
+import javax.xml.crypto.Data;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
@@ -15,14 +17,24 @@ public class UserServiceTest {
 
 
 
+    @Test
+    public void testGetUsersBetweenTwoDates(){
+        final UserRepository userRepository = new UserRepository();
+        final UserService userService = new UserService(userRepository);
+
+        LocalDate startDate = LocalDate.of(2009,1,1);
+        LocalDate endDate = LocalDate.of(2009, 12, 31);
+
+        assertThat(userService.getUserListWithSize(null, null, null, null, startDate, endDate).getSize()).isEqualTo(1);
+    }
 
     @Test
     public void testGetSearchedUsersByUsername(){
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        assertThat(userService.getUserListWithSize(null, "cosmin", null, null).getSize()).isEqualTo(1);
-        assertThat(userService.getUserListWithSize(null, "pop", null, null).getSize()).isEqualTo(6);
+        assertThat(userService.getUserListWithSize(null, "cosmin", null, null, null, null).getSize()).isEqualTo(1);
+        assertThat(userService.getUserListWithSize(null, "pop", null, null, null, null).getSize()).isEqualTo(6);
 
     }
 
@@ -31,8 +43,8 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        assertThat(userService.getUserListWithSize("ascending", null, null, null).getUsers().get(0).getUsername()).isEqualTo("Alex Popescu");
-        assertThat(userService.getUserListWithSize("descending", null, null, null).getUsers().get(0).getUsername()).isEqualTo("Roberto Pitic");
+        assertThat(userService.getUserListWithSize("ascending", null, null, null, null, null).getUsers().get(0).getUsername()).isEqualTo("Alex Popescu");
+        assertThat(userService.getUserListWithSize("descending", null, null, null, null, null).getUsers().get(0).getUsername()).isEqualTo("Roberto Pitic");
     }
 
     @Test
@@ -40,19 +52,19 @@ public class UserServiceTest {
         final UserRepository userRepository = new UserRepository();
         final UserService userService = new UserService(userRepository);
 
-        assertThat(userService.getUserListWithSize(null, null, 3, 0).getUsers().size()).isEqualTo(3);
-        assertThat(userService.getUserListWithSize(null, null, 3, 0).getUsers().get(0).getUsername()).isEqualTo("Cosmin Timis");
+        assertThat(userService.getUserListWithSize(null, null, 3, 0, null, null).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 0, null, null).getUsers().get(0).getUsername()).isEqualTo("Cosmin Timis");
 
-        assertThat(userService.getUserListWithSize(null, null, 3, 3).getUsers().size()).isEqualTo(3);
-        assertThat(userService.getUserListWithSize(null, null, 3, 3).getUsers().get(0).getUsername()).isEqualTo("Mihai Pop");
+        assertThat(userService.getUserListWithSize(null, null, 3, 3, null, null).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 3, null, null).getUsers().get(0).getUsername()).isEqualTo("Mihai Pop");
 
-        assertThat(userService.getUserListWithSize(null, null, 3, 6).getUsers().size()).isEqualTo(3);
-        assertThat(userService.getUserListWithSize(null, null, 3, 6).getUsers().get(0).getUsername()).isEqualTo("Dan Pop");
+        assertThat(userService.getUserListWithSize(null, null, 3, 6, null, null).getUsers().size()).isEqualTo(3);
+        assertThat(userService.getUserListWithSize(null, null, 3, 6, null, null).getUsers().get(0).getUsername()).isEqualTo("Dan Pop");
 
-        assertThat(userService.getUserListWithSize(null, null, 3, 9).getUsers().size()).isEqualTo(2);
-        assertThat(userService.getUserListWithSize(null, null, 3, 9).getUsers().get(0).getUsername()).isEqualTo("Codrut Hojda");
+        assertThat(userService.getUserListWithSize(null, null, 3, 9, null, null).getUsers().size()).isEqualTo(2);
+        assertThat(userService.getUserListWithSize(null, null, 3, 9, null, null).getUsers().get(0).getUsername()).isEqualTo("Codrut Hojda");
 
-        assertThat(userService.getUserListWithSize(null, null, 3, 12).getUsers().size()).isEqualTo(0);
+        assertThat(userService.getUserListWithSize(null, null, 3, 12, null, null).getUsers().size()).isEqualTo(0);
     }
 
 

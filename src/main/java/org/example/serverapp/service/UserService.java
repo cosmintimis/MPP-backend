@@ -9,6 +9,7 @@ import org.example.serverapp.validation.UserValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -42,9 +43,18 @@ public class UserService {
     }
 
 
-    public UserListWithSizeDto getUserListWithSize(String sortedByUsername, String searchByUsername, Integer limit, Integer skip) {
+    public UserListWithSizeDto getUserListWithSize(String sortedByUsername, String searchByUsername, Integer limit, Integer skip, LocalDate startBirthDate, LocalDate endBirthDate) {
         List<User> users = new ArrayList<>(userRepository.getAll());
         int size = users.size();
+
+        if(startBirthDate != null && endBirthDate != null){
+            users = users.stream().filter(user -> user.getBirthdate().isAfter(startBirthDate) &&
+                    user.getBirthdate().isBefore(endBirthDate.plusDays(1)))
+                    .toList();
+            size = users.size();
+
+        }
+
         if (searchByUsername != null) {
             users = users.stream()
                     .filter(user -> user.getUsername().toLowerCase().contains(searchByUsername.toLowerCase()))
