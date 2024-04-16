@@ -3,8 +3,7 @@ package org.example.serverapp.service;
 import org.example.serverapp.dto.UserDto;
 import org.example.serverapp.dto.UserListWithSizeDto;
 import org.example.serverapp.entity.User;
-import org.example.serverapp.mapper.UserMapper;
-import org.example.serverapp.repository.UserRepository;
+import org.example.serverapp.repository.UserRepositoryDB;
 import org.example.serverapp.validation.UserValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,41 +13,41 @@ import java.util.*;
 
 @Service
 public class UserService {
-    private final UserRepository userRepository;
+    private final UserRepositoryDB userRepositoryDB;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserService(UserRepositoryDB userRepositoryDB) {
+        this.userRepositoryDB = userRepositoryDB;
     }
 
 
-    public UserDto addUser(UserDto user) {
-        User newUser = new User(userRepository.firstFreeId(), user.getUsername(), user.getPassword(), user.getEmail(), user.getAvatar(), user.getBirthdate(), user.getRating(), user.getAddress());
-        UserValidation.validate(newUser);
-        userRepository.add(newUser);
-        return UserMapper.mapToUserDto(newUser);
+    public User addUser(User user) {
+
+        UserValidation.validate(user);
+        userRepositoryDB.save(user);
+        return user;
     }
 
-    public UserDto getUserById(Integer id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User with id " + id + " not found");
+    public User getUserById(Integer id) {
+        Optional<User> userOptional = userRepositoryDB.findById(id);
+        if (userOptional.isPresent()) {
+            return userOptional.get();
         }
-        return UserMapper.mapToUserDto(userRepository.getById(id));
+        throw new RuntimeException("User with id " + id + " not found");
+
     }
 
-    public List<UserDto> getUserListWithSize() {
-        return userRepository.getAll().stream()
-                .map(UserMapper::mapToUserDto)
-                .toList();
+    public List<User> getAllUsers() {
+        return userRepositoryDB.findAll();
     }
 
 
     public UserListWithSizeDto getUserListWithSize(String sortedByUsername, String searchByUsername, Integer limit, Integer skip, LocalDate startBirthDate, LocalDate endBirthDate) {
-        List<User> users = new ArrayList<>(userRepository.getAll());
+        List<User> users = new ArrayList<>(userRepositoryDB.findAll());
         int size = users.size();
 
         if(startBirthDate != null && endBirthDate != null){
-            users = users.stream().filter(user -> user.getBirthdate().isAfter(startBirthDate) &&
+            users = users.stream().filter(user -> user.getBirthdate().isAfter(startBirthDate.minusDays(1)) &&
                     user.getBirthdate().isBefore(endBirthDate.plusDays(1)))
                     .toList();
             size = users.size();
@@ -77,31 +76,42 @@ public class UserService {
                     .limit(limit)
                     .toList();
         }
-        return new UserListWithSizeDto(users.stream().map(UserMapper::mapToUserDto).toList(), size);
+        return new UserListWithSizeDto(users, size);
     }
 
 
-    public UserDto updateUser(Integer id, UserDto updatedUser) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User with id " + id + " not found");
+    public User updateUser(Integer id, User updatedUser) {
+
+        Optional<User> userOptional = userRepositoryDB.findById(id);
+        if (userOptional.isPresent()) {
+            UserValidation.validate(updatedUser);
+            User user = userOptional.get() ;
+
+            user.setUsername(updatedUser.getUsername());
+            user.setPassword(updatedUser.getPassword());
+            user.setEmail(updatedUser.getEmail());
+            user.setAvatar(updatedUser.getAvatar());
+            user.setBirthdate(updatedUser.getBirthdate());
+            user.setRating(updatedUser.getRating());
+            user.setAddress(updatedUser.getAddress());
+
+            userRepositoryDB.save(user);
+            return user;
         }
+        throw new RuntimeException("User with id " + id + " not found");
 
-        User user = UserMapper.mapToUser(updatedUser);
-        UserValidation.validate(user);
-        userRepository.update(id, user);
 
-        return updatedUser;
     }
 
     public void deleteUser(Integer id) {
-        if (!userRepository.existsById(id)) {
+        if (userRepositoryDB.findById(id).isEmpty()) {
             throw new RuntimeException("User with id " + id + " not found");
         }
-        userRepository.delete(id);
+        userRepositoryDB.deleteById(id);
     }
 
     public Map<Integer, Integer> getBirthsPerYear() {
-        List<User> users = userRepository.getAll();
+        List<User> users = userRepositoryDB.findAll();
 
         Map<Integer, Integer> birthsPerYear = new HashMap<>();
 

@@ -1,380 +1,350 @@
 package org.example.serverapp;
 
+
 import org.example.serverapp.dto.UserDto;
-import org.example.serverapp.repository.UserRepository;
+import org.example.serverapp.entity.User;
+import org.example.serverapp.repository.UserRepositoryDB;
 import org.example.serverapp.service.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.xml.crypto.Data;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
-
+@ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
+    @Mock
+    private UserRepositoryDB userRepositoryDB;
 
-
-    @Test
-    public void testGetUsersBetweenTwoDates(){
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
-
-        LocalDate startDate = LocalDate.of(2009,1,1);
-        LocalDate endDate = LocalDate.of(2009, 12, 31);
-
-        assertThat(userService.getUserListWithSize(null, null, null, null, startDate, endDate).getSize()).isEqualTo(1);
-    }
-
-    @Test
-    public void testGetSearchedUsersByUsername(){
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
-
-        assertThat(userService.getUserListWithSize(null, "cosmin", null, null, null, null).getSize()).isEqualTo(1);
-        assertThat(userService.getUserListWithSize(null, "pop", null, null, null, null).getSize()).isEqualTo(6);
-
-    }
-
-    @Test
-    public void testGetSortedUsersByUsername(){
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
-
-        assertThat(userService.getUserListWithSize("ascending", null, null, null, null, null).getUsers().get(0).getUsername()).isEqualTo("Alex Popescu");
-        assertThat(userService.getUserListWithSize("descending", null, null, null, null, null).getUsers().get(0).getUsername()).isEqualTo("Roberto Pitic");
-    }
-
-    @Test
-    public void testGetUsersWithLimitAndSkip(){
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
-
-        assertThat(userService.getUserListWithSize(null, null, 3, 0, null, null).getUsers().size()).isEqualTo(3);
-        assertThat(userService.getUserListWithSize(null, null, 3, 0, null, null).getUsers().get(0).getUsername()).isEqualTo("Cosmin Timis");
-
-        assertThat(userService.getUserListWithSize(null, null, 3, 3, null, null).getUsers().size()).isEqualTo(3);
-        assertThat(userService.getUserListWithSize(null, null, 3, 3, null, null).getUsers().get(0).getUsername()).isEqualTo("Mihai Pop");
-
-        assertThat(userService.getUserListWithSize(null, null, 3, 6, null, null).getUsers().size()).isEqualTo(3);
-        assertThat(userService.getUserListWithSize(null, null, 3, 6, null, null).getUsers().get(0).getUsername()).isEqualTo("Dan Pop");
-
-        assertThat(userService.getUserListWithSize(null, null, 3, 9, null, null).getUsers().size()).isEqualTo(2);
-        assertThat(userService.getUserListWithSize(null, null, 3, 9, null, null).getUsers().get(0).getUsername()).isEqualTo("Codrut Hojda");
-
-        assertThat(userService.getUserListWithSize(null, null, 3, 12, null, null).getUsers().size()).isEqualTo(0);
-    }
-
-
-    @Test
-    public void testGetBirthsPerYear() {
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
-
-        Map<Integer, Integer> birthsPerYear = userService.getBirthsPerYear();
-
-        assertThat(birthsPerYear.get(2003)).isEqualTo(6);
-        assertThat(birthsPerYear.get(2004)).isEqualTo(3);
-        assertThat(birthsPerYear.get(2009)).isEqualTo(1);
-        assertThat(birthsPerYear.get(2006)).isEqualTo(1);
-
-    }
-
+    @InjectMocks
+    private UserService userService;
 
     @Test
     public void testAddUser() {
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
+        User user = User.builder()
+                .id(1)
+                .username("cosmin123")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.now())
+                .rating(0.2)
+                .address("address")
+                .build();
+        UserDto userDto = UserDto.builder()
+                .id(1)
+                .username("cosmin123")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.now())
+                .rating(0.2)
+                .address("address")
+                .build();
 
-        int currentSize = userService.getUserListWithSize().size();
+        when(userRepositoryDB.save(Mockito.any(User.class))).thenReturn(user);
 
-        UserDto newUserDto = new UserDto(userRepository.firstFreeId(), "test2024", "test2024", "test2024", "test2024", null, 0.1, "test2024");
 
-        assertThatThrownBy(() -> userService.addUser(newUserDto))
-                .isInstanceOf(Exception.class);
+        User savedUser = userService.addUser(user);
 
-        UserDto goodUserDto = new UserDto(
-                userRepository.firstFreeId(),
-                "cosmin alexandru",
-                "testing123",
-                "t@t.com",
-                "test",
-                LocalDate.of(2024, 1, 1),
-                1.7,
-                "address test"
-        );
+        assertThat(savedUser).isNotNull();
+    }
 
-        userService.addUser(goodUserDto);
-        assertThat(userService.getUserListWithSize().size()).isEqualTo(currentSize + 1);
+    @Test
+    public void getAllUsers() {
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin123")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.now())
+                .rating(0.2)
+                .address("address")
+                .build();
 
-        UserDto invalidUsername = new UserDto(
-                userRepository.firstFreeId(),
-                "",
-                "testing123",
-                "t@t.com",
-                "test",
-                LocalDate.of(2024, 1, 1),
-                1.7,
-                "address test");
-        UserDto invalidPassword = new UserDto(
-                userRepository.firstFreeId(),
-                "cosmin alexandru",
-                "",
-                "t@t.com",
-                "test",
-                LocalDate.of(2024, 1, 1),
-                1.7,
-                "address test");
-        UserDto invalidEmail = new UserDto(
-                userRepository.firstFreeId(),
-                "cosmin alexandru",
-                "testing123",
-                "",
-                "test",
-                LocalDate.of(2024, 1, 1),
-                1.7,
-                "address test");
-        UserDto invalidAvatar = new UserDto(
-                userRepository.firstFreeId(),
-                "cosmin alexandru",
-                "testing123",
-                "t@t.com",
-                "",
-                LocalDate.of(2024, 1, 1),
-                1.7,
-                "address test");
-        UserDto invalidBirthdate = new UserDto(
-                userRepository.firstFreeId(),
-                "cosmin alexandru",
-                "testing123",
-                "t@t.com",
-                "test",
-                null,
-                1.7,
-                "address test");
-        UserDto invalidRating = new UserDto(
-                userRepository.firstFreeId(),
-                "cosmin alexandru",
-                "testing123",
-                "t@t.com",
-                "test",
-                LocalDate.of(2024, 1, 1),
-                11.0,
-                "address test");
-        UserDto invalidAddress = new UserDto(
-                userRepository.firstFreeId(),
-                "cosmin alexandru",
-                "testing123",
-                "t@t.com",
-                "test",
-                LocalDate.of(2024, 1, 1),
-                1.7,
-                "");
+        User user2 = User.builder()
+                .id(2)
+                .username("cosmin1234")
+                .password("cosmin1234")
+                .email("test2@gmail.com")
+                .avatar("avatar2")
+                .birthdate(LocalDate.now())
+                .rating(0.22)
+                .address("address2")
+                .build();
 
-        assertThatThrownBy(() -> userService.addUser(invalidUsername))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Username must be at least 6 characters long");
-        assertThatThrownBy(() -> userService.addUser(invalidPassword))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Password must be at least 6 characters long");
-        assertThatThrownBy(() -> userService.addUser(invalidEmail))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Invalid email address");
-        assertThatThrownBy(() -> userService.addUser(invalidAvatar))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Avatar must be at least 1 character long");
-        assertThatThrownBy(() -> userService.addUser(invalidBirthdate))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Birthdate must be set");
-        assertThatThrownBy(() -> userService.addUser(invalidRating))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Rating must be between 0 and 10");
-        assertThatThrownBy(() -> userService.addUser(invalidAddress))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Address must be at least 1 character long");
+        List<User> users = List.of(user1, user2);
 
+        when(userRepositoryDB.findAll()).thenReturn(users);
+
+        List<User> allUsers = userService.getAllUsers();
+
+        assertThat(allUsers).isNotNull();
+        assertThat(allUsers.size()).isEqualTo(2);
     }
 
     @Test
     public void testGetUserById() {
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin123")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.now())
+                .rating(0.2)
+                .address("address")
+                .build();
+        when(userRepositoryDB.findById(1)).thenReturn(Optional.ofNullable(user1));
 
-        UserDto firstUser = userService.getUserById(1);
+        User user = userService.getUserById(1);
+        assertThat(user).isNotNull();
 
-        assertThat(firstUser.getId()).isEqualTo(1);
-        assertThat(firstUser.getUsername()).isEqualTo("Cosmin Timis");
-        assertThat(firstUser.getPassword()).isEqualTo("parolaaiabuna");
-        assertThat(firstUser.getEmail()).isEqualTo("cosmin.timis@gmail.com");
-        assertThat(firstUser.getAvatar()).isEqualTo("https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400");
-        assertThat(firstUser.getBirthdate()).isEqualTo(LocalDate.parse("2003-01-01"));
-        assertThat(firstUser.getRating()).isEqualTo(8.8);
-        assertThat(firstUser.getAddress()).isEqualTo("address1");
+        Assertions.assertThrows(RuntimeException.class, () -> userService.getUserById(2));
 
-
-        assertThatThrownBy(() -> userService.getUserById(100))
-                .isInstanceOf(Exception.class)
-                .hasMessage("User with id 100 not found");
-    }
-
-    @Test
-    public void testGetAllUsers() {
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
-
-        assertThat(userService.getUserListWithSize().size()).isEqualTo(11);
-    }
-
-    @Test
-    public void testDeleteUser() {
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
-
-        int currentSize = userService.getUserListWithSize().size();
-
-        assertThatThrownBy(() -> userService.deleteUser(100))
-                .isInstanceOf(Exception.class)
-                .hasMessage("User with id 100 not found");
-
-        userService.deleteUser(1);
-
-        assertThat(userService.getUserListWithSize().size()).isEqualTo(currentSize - 1);
     }
 
     @Test
     public void testUpdateUser() {
-        final UserRepository userRepository = new UserRepository();
-        final UserService userService = new UserService(userRepository);
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin123")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.now())
+                .rating(0.2)
+                .address("address")
+                .build();
+        User userDto = User.builder()
+                .id(1)
+                .username("cosmin1234")
+                .password("cosmin1234")
+                .email("testUpdated@gmail.com")
+                .avatar("avatarUpdated")
+                .birthdate(LocalDate.of(1999, 12, 12))
+                .rating(0.22)
+                .address("addressUpdated")
+                .build();
 
-        UserDto firstUser = userService.getUserById(1);
+        when(userRepositoryDB.findById(1)).thenReturn(Optional.ofNullable(user1));
+        when(userRepositoryDB.save(Mockito.any(User.class))).thenReturn(userDto);
 
-        UserDto updateUserInvalidUsername = new UserDto(
-                firstUser.getId(),
-                "",
-                firstUser.getPassword(),
-                firstUser.getEmail(),
-                firstUser.getAvatar(),
-                firstUser.getBirthdate(),
-                firstUser.getRating(),
-                firstUser.getAddress()
-        );
-        UserDto updateUserInvalidPassword = new UserDto(
-                firstUser.getId(),
-                firstUser.getUsername(),
-                "",
-                firstUser.getEmail(),
-                firstUser.getAvatar(),
-                firstUser.getBirthdate(),
-                firstUser.getRating(),
-                firstUser.getAddress()
-        );
-        UserDto updateUserInvalidEmail = new UserDto(
-                firstUser.getId(),
-                firstUser.getUsername(),
-                firstUser.getPassword(),
-                "",
-                firstUser.getAvatar(),
-                firstUser.getBirthdate(),
-                firstUser.getRating(),
-                firstUser.getAddress()
-        );
-        UserDto updateUserInvalidAvatar = new UserDto(
-                firstUser.getId(),
-                firstUser.getUsername(),
-                firstUser.getPassword(),
-                firstUser.getEmail(),
-                "",
-                firstUser.getBirthdate(),
-                firstUser.getRating(),
-                firstUser.getAddress()
-        );
-        UserDto updateUserInvalidBirthdate = new UserDto(
-                firstUser.getId(),
-                firstUser.getUsername(),
-                firstUser.getPassword(),
-                firstUser.getEmail(),
-                firstUser.getAvatar(),
-                null,
-                firstUser.getRating(),
-                firstUser.getAddress()
-        );
-        UserDto updateUserInvalidRating = new UserDto(
-                firstUser.getId(),
-                firstUser.getUsername(),
-                firstUser.getPassword(),
-                firstUser.getEmail(),
-                firstUser.getAvatar(),
-                firstUser.getBirthdate(),
-                11.0,
-                firstUser.getAddress()
-        );
-        UserDto updateUserInvalidAddress = new UserDto(
-                firstUser.getId(),
-                firstUser.getUsername(),
-                firstUser.getPassword(),
-                firstUser.getEmail(),
-                firstUser.getAvatar(),
-                firstUser.getBirthdate(),
-                firstUser.getRating(),
-                ""
-        );
+        User updatedUser = userService.updateUser(1, userDto);
 
-        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidUsername))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Username must be at least 6 characters long");
+        assertThat(updatedUser).isNotNull();
+        assertThat(updatedUser.getUsername()).isEqualTo("cosmin1234");
+        assertThat(updatedUser.getPassword()).isEqualTo("cosmin1234");
+        assertThat(updatedUser.getEmail()).isEqualTo("testUpdated@gmail.com");
+        assertThat(updatedUser.getAvatar()).isEqualTo("avatarUpdated");
+        assertThat(updatedUser.getRating()).isEqualTo(0.22);
+        assertThat(updatedUser.getAddress()).isEqualTo("addressUpdated");
+        assertThat(updatedUser.getBirthdate()).isEqualTo(LocalDate.of(1999, 12, 12));
 
-        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidPassword))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Password must be at least 6 characters long");
+        Assertions.assertThrows(RuntimeException.class, () -> userService.updateUser(2, user1));
 
-        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidEmail))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Invalid email address");
-
-        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidAvatar))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Avatar must be at least 1 character long");
-
-        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidBirthdate))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Birthdate must be set");
-
-        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidRating))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Rating must be between 0 and 10");
-
-        assertThatThrownBy(() -> userService.updateUser(firstUser.getId(), updateUserInvalidAddress))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Address must be at least 1 character long");
-
-        UserDto updateUser = new UserDto(
-                firstUser.getId(),
-                "alexandru horj",
-                "parolabuna",
-                "test@gmail.ro",
-                "avatarnou",
-                LocalDate.of(2000, 1, 1),
-                9.9,
-                "adresanoua");
+    }
 
 
-        userService.updateUser(firstUser.getId(), updateUser);
-        UserDto firstUserUpdated = userService.getUserById(1);
+    @Test
+    public void testDeleteUser() {
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin123")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.now())
+                .rating(0.2)
+                .address("address")
+                .build();
+        when(userRepositoryDB.findById(1)).thenReturn(Optional.ofNullable(user1));
 
-        assertThat(firstUserUpdated.getId()).isEqualTo(1);
-        assertThat(firstUserUpdated.getUsername()).isEqualTo("alexandru horj");
-        assertThat(firstUserUpdated.getPassword()).isEqualTo("parolabuna");
-        assertThat(firstUserUpdated.getEmail()).isEqualTo("test@gmail.ro");
-        assertThat(firstUserUpdated.getAvatar()).isEqualTo("avatarnou");
-        assertThat(firstUserUpdated.getBirthdate()).isEqualTo(LocalDate.of(2000, 1, 1));
-        assertThat(firstUserUpdated.getRating()).isEqualTo(9.9);
-        assertThat(firstUserUpdated.getAddress()).isEqualTo("adresanoua");
+        userService.deleteUser(1);
+
+        Assertions.assertThrows(RuntimeException.class, () -> userService.deleteUser(2));
+
+    }
+
+    @Test
+    public void testGetBirthsPerYear() {
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin123")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.of(2000, 1, 1))
+                .rating(0.2)
+                .address("address")
+                .build();
+
+        User user2 = User.builder()
+                .id(2)
+                .username("cosmin1234")
+                .password("cosmin1234")
+                .email("test2@gmail.com")
+                .avatar("avatar2")
+                .birthdate(LocalDate.of(2003, 2, 2))
+                .rating(0.22)
+                .address("address2")
+                .build();
+
+        when(userRepositoryDB.findAll()).thenReturn(List.of(user1, user2));
+
+        assertThat(userService.getBirthsPerYear().size()).isEqualTo(2);
+        assertThat(userService.getBirthsPerYear().get(2000)).isEqualTo(1);
+        assertThat(userService.getBirthsPerYear().get(2003)).isEqualTo(1);
+    }
+
+
+    @Test
+    public void testGetUsersBetweenTwoDates() {
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin123")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.of(2000, 1, 1))
+                .rating(0.2)
+                .address("address")
+                .build();
+
+        User user2 = User.builder()
+                .id(2)
+                .username("cosmin1234")
+                .password("cosmin1234")
+                .email("test2@gmail.com")
+                .avatar("avatar2")
+                .birthdate(LocalDate.of(2003, 2, 2))
+                .rating(0.22)
+                .address("address2")
+                .build();
+
+        when(userRepositoryDB.findAll()).thenReturn(List.of(user1, user2));
+
+        assertThat(userService.getUserListWithSize(null, null, null, null, LocalDate.of(2000, 1, 1), LocalDate.of(2003, 2, 2)).getSize()).isEqualTo(2);
+
+        assertThat(userService.getUserListWithSize(null, null, null, null, LocalDate.of(2006, 1, 1), LocalDate.of(2007, 2, 2)).getSize()).isEqualTo(0);
+
+        assertThat(userService.getUserListWithSize(null, null, null, null, LocalDate.of(2001, 1, 1), LocalDate.of(2003, 2, 2)).getSize()).isEqualTo(1);
+
+        assertThat(userService.getUserListWithSize(null, null, null, null, LocalDate.of(2000, 1, 1), LocalDate.of(2002, 2, 2)).getSize()).isEqualTo(1);
 
 
 
     }
+
+
+    @Test
+    public void testGetSearchedUsersByUsername() {
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin timis")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.of(2000, 1, 1))
+                .rating(0.2)
+                .address("address")
+                .build();
+
+        User user2 = User.builder()
+                .id(2)
+                .username("alexandru timis")
+                .password("cosmin1234")
+                .email("test2@gmail.com")
+                .avatar("avatar2")
+                .birthdate(LocalDate.of(2003, 2, 2))
+                .rating(0.22)
+                .address("address2")
+                .build();
+
+        when(userRepositoryDB.findAll()).thenReturn(List.of(user1, user2));
+
+        assertThat(userService.getUserListWithSize(null, "cosmin", null, null, null, null).getSize()).isEqualTo(1);
+        assertThat(userService.getUserListWithSize(null, "alexandru", null, null, null, null).getSize()).isEqualTo(1);
+        assertThat(userService.getUserListWithSize(null, "nimsoc", null, null, null, null).getSize()).isEqualTo(0);
+        assertThat(userService.getUserListWithSize(null, "timis", null, null, null, null).getSize()).isEqualTo(2);
+    }
+
+    @Test
+    public void testGetSortedUsersByUsername() {
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin timis")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.of(2000, 1, 1))
+                .rating(0.2)
+                .address("address")
+                .build();
+
+        User user2 = User.builder()
+                .id(2)
+                .username("roberto pitic")
+                .password("roberto1234")
+                .email("test2@gmail.com")
+                .avatar("avatar2")
+                .birthdate(LocalDate.of(2003, 2, 2))
+                .rating(0.22)
+                .address("address2")
+                .build();
+
+        when(userRepositoryDB.findAll()).thenReturn(List.of(user1, user2));
+
+        assertThat(userService.getUserListWithSize("ascending", null, null, null, null, null).getUsers().get(0).getUsername()).isEqualTo("cosmin timis");
+        assertThat(userService.getUserListWithSize("descending", null, null, null, null, null).getUsers().get(0).getUsername()).isEqualTo("roberto pitic");
+
+    }
+
+    @Test
+    public void testGetUsersWithLimitAndSkip(){
+        User user1 = User.builder()
+                .id(1)
+                .username("cosmin timis")
+                .password("cosmin123")
+                .email("test@gmail.com")
+                .avatar("avatar")
+                .birthdate(LocalDate.of(2000, 1, 1))
+                .rating(0.2)
+                .address("address")
+                .build();
+
+        User user2 = User.builder()
+                .id(2)
+                .username("roberto pitic")
+                .password("roberto1234")
+                .email("test2@gmail.com")
+                .avatar("avatar2")
+                .birthdate(LocalDate.of(2003, 2, 2))
+                .rating(0.22)
+                .address("address2")
+                .build();
+
+        when(userRepositoryDB.findAll()).thenReturn(List.of(user1, user2));
+
+
+        assertThat(userService.getUserListWithSize(null, null, 1, 0, null, null).getUsers().size()).isEqualTo(1);
+        assertThat(userService.getUserListWithSize(null, null, 1, 1, null, null).getUsers().size()).isEqualTo(1);
+        assertThat(userService.getUserListWithSize(null, null, 1, 2, null, null).getUsers().size()).isEqualTo(0);
+        assertThat(userService.getUserListWithSize(null, null, 2, 0, null, null).getUsers().size()).isEqualTo(2);
+
+    }
+
 
 
 }

@@ -4,6 +4,7 @@ package org.example.serverapp;
 import org.example.serverapp.controller.UserController;
 import org.example.serverapp.dto.UserDto;
 import org.example.serverapp.dto.UserListWithSizeDto;
+import org.example.serverapp.entity.User;
 import org.example.serverapp.service.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,8 @@ class UserControllerTest {
 
     @Test
     void testGetAll() throws Exception {
-        UserDto user1 =  new UserDto(1, "Cosmin Timis", "parolaaiabuna", "cosmin.timis@gmail.com", "https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400",
-                LocalDate.parse("2003-01-01"), 8.8, "address1");
+        User user1 =  new User(1, "Cosmin Timis", "parolaaiabuna", "cosmin.timis@gmail.com", "https://robohash.org/e5a84795597420d98d606433f8ad1f70?set=set4&bgset=&size=400x400",
+                LocalDate.parse("2003-01-01"), 8.8, "address1", null);
         when(userService.getUserListWithSize(null, null, null, null, null, null)).thenReturn(new UserListWithSizeDto(List.of(user1), 1));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users"))
@@ -93,8 +94,8 @@ class UserControllerTest {
 
     @Test
     void testGetById() throws Exception {
-        UserDto user2 =  new UserDto(2, "Roberto Pitic", "parola2", "roberto.pitic@gmail.com", "https://robohash.org/123a37a18fdbba6a742e7446c8166393?set=set4&bgset=&size=400x400",
-                LocalDate.parse("2004-01-01"), 9.4, "address2");
+        User user2 =  new User(2, "Roberto Pitic", "parola2", "roberto.pitic@gmail.com", "https://robohash.org/123a37a18fdbba6a742e7446c8166393?set=set4&bgset=&size=400x400",
+                LocalDate.parse("2004-01-01"), 9.4, "address2", null);
         when(userService.getUserById(2)).thenReturn(user2);
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/2"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -125,7 +126,7 @@ class UserControllerTest {
                         "}"))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
 
-        verify(userService).addUser(any(UserDto.class));
+        verify(userService).addUser(any(User.class));
 
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/users")
@@ -167,7 +168,7 @@ class UserControllerTest {
                                 "}"))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(userService).updateUser(eq(1), any(UserDto.class));
+        verify(userService).updateUser(eq(1), any(User.class));
     }
 
 

@@ -1,17 +1,17 @@
 package org.example.serverapp.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@Data
 public class UserDto {
     private Integer id;
     private String username;
@@ -21,4 +21,8 @@ public class UserDto {
     private LocalDate birthdate;
     private Double rating;
     private String address;
+
+
+    private List<ProductDto> products;
+
 }
