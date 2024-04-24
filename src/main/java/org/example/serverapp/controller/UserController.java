@@ -7,6 +7,7 @@ import org.example.serverapp.entity.User;
 import org.example.serverapp.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -84,6 +85,5 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.ok("User with id " + id + " deleted successfully");
     }
-
 
 }

@@ -1,5 +1,6 @@
 package org.example.serverapp.service;
 
+import com.github.javafaker.Faker;
 import org.example.serverapp.dto.UserDto;
 import org.example.serverapp.dto.UserListWithSizeDto;
 import org.example.serverapp.entity.User;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -130,5 +132,24 @@ public class UserService {
 
         return birthsPerYear;
 
+    }
+
+
+    public void generateUsers(int n){
+
+
+        for (int i = 0; i < n; i++) {
+            Faker faker = new Faker();
+            User user = User.builder()
+                    .username(faker.name().username())
+                    .password(faker.internet().password())
+                    .email(faker.internet().emailAddress())
+                    .avatar(faker.internet().avatar())
+                    .birthdate(faker.date().birthday().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                    .rating(faker.number().randomDouble(1, 1, 9))
+                    .address(faker.address().fullAddress())
+                    .build();
+            userRepositoryDB.save(user);
+        }
     }
 }
