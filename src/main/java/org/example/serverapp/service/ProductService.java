@@ -1,5 +1,6 @@
 package org.example.serverapp.service;
 
+import com.github.javafaker.Faker;
 import org.example.serverapp.entity.Product;
 import org.example.serverapp.repository.ProductRepositoryDB;
 import org.example.serverapp.repository.UserRepositoryDB;
@@ -7,6 +8,7 @@ import org.example.serverapp.validation.ProductValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service

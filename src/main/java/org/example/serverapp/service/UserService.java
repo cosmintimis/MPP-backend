@@ -7,10 +7,13 @@ import org.example.serverapp.entity.User;
 import org.example.serverapp.repository.UserRepositoryDB;
 import org.example.serverapp.validation.UserValidation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -42,44 +45,48 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepositoryDB.findAll();
     }
+    
+    public UserListWithSizeDto getUserListWithSize(String sortedByUsername, String searchByUsername, Integer pageSize, Integer currentPage, LocalDate startBirthDate, LocalDate endBirthDate) {
+        Specification<User> spec = null;
 
-
-    public UserListWithSizeDto getUserListWithSize(String sortedByUsername, String searchByUsername, Integer limit, Integer skip, LocalDate startBirthDate, LocalDate endBirthDate) {
-        List<User> users = new ArrayList<>(userRepositoryDB.findAll());
-        int size = users.size();
-
-        if(startBirthDate != null && endBirthDate != null){
-            users = users.stream().filter(user -> user.getBirthdate().isAfter(startBirthDate.minusDays(1)) &&
-                    user.getBirthdate().isBefore(endBirthDate.plusDays(1)))
-                    .toList();
-            size = users.size();
-
+        if(startBirthDate != null || endBirthDate != null) {
+            spec = UserRepositoryDB.Specs.birthDateBetween(startBirthDate, endBirthDate);
         }
 
-        if (searchByUsername != null) {
-            users = users.stream()
-                    .filter(user -> user.getUsername().toLowerCase().contains(searchByUsername.toLowerCase()))
-                    .toList();
-            size = users.size();
+        if(searchByUsername != null) {
+           if(spec == null) {
+               spec = UserRepositoryDB.Specs.searchByUsername(searchByUsername);
+           } else {
+               spec = spec.and(UserRepositoryDB.Specs.searchByUsername(searchByUsername));
+           }
         }
-        if (sortedByUsername != null) {
-            if(sortedByUsername.equals("ascending"))
-                users = users.stream()
-                        .sorted(Comparator.comparing(User::getUsername))
-                        .toList();
-            else if(sortedByUsername.equals("descending"))
-                users = users.stream()
-                        .sorted(Comparator.comparing(User::getUsername).reversed())
-                        .toList();
+
+        if(sortedByUsername != null) {
+            if(sortedByUsername.equals("ascending")) {
+                if(spec == null) {
+                    spec = UserRepositoryDB.Specs.sortedByUsername(null);
+                } else {
+                    spec = UserRepositoryDB.Specs.sortedByUsername(spec);
+                }
+            }
         }
-        if (limit != null && skip != null) {
-            users = users.stream()
-                    .skip(skip)
-                    .limit(limit)
-                    .toList();
+        if(spec == null) {
+            spec = Specification.where(null);
         }
+
+        if(pageSize != null && currentPage != null) {
+            Pageable pageable = PageRequest.of(currentPage, pageSize);
+            List<User> users = userRepositoryDB.findAll(spec, pageable).toList();
+            long size = userRepositoryDB.count(spec);
+            return new UserListWithSizeDto(users, size);
+        }
+
+        List<User> users = userRepositoryDB.findAll(spec);
+        long size = userRepositoryDB.count(spec);
         return new UserListWithSizeDto(users, size);
     }
+
+
 
 
     public User updateUser(Integer id, User updatedUser) {
@@ -113,13 +120,10 @@ public class UserService {
     }
 
     public Map<Integer, Integer> getBirthsPerYear() {
-        List<User> users = userRepositoryDB.findAll();
-
-        Map<Integer, Integer> birthsPerYear = new HashMap<>();
-
-        users = users.stream()
-                .sorted(Comparator.comparing(User::getBirthdate))
-                .toList();
+        Map<Integer, Integer> birthsPerYear = new TreeMap<>();
+        List<User> users = userRepositoryDB.findAll(
+                Sort.by(Sort.Order.asc("birthdate")) //
+        );
 
         for (User user : users) {
             int year = user.getBirthdate().getYear();
@@ -132,24 +136,5 @@ public class UserService {
 
         return birthsPerYear;
 
-    }
-
-
-    public void generateUsers(int n){
-
-
-        for (int i = 0; i < n; i++) {
-            Faker faker = new Faker();
-            User user = User.builder()
-                    .username(faker.name().username())
-                    .password(faker.internet().password())
-                    .email(faker.internet().emailAddress())
-                    .avatar(faker.internet().avatar())
-                    .birthdate(faker.date().birthday().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-                    .rating(faker.number().randomDouble(1, 1, 9))
-                    .address(faker.address().fullAddress())
-                    .build();
-            userRepositoryDB.save(user);
-        }
     }
 }

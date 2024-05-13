@@ -1,5 +1,6 @@
 package org.example.serverapp.socket;
 
+import org.example.serverapp.service.GenerateFakeDataService;
 import org.example.serverapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -24,13 +25,13 @@ import java.util.concurrent.TimeUnit;
 public class WebSocketBroadcaster extends TextWebSocketHandler {
 
     private final ConcurrentLinkedQueue<WebSocketSession> sessions = new ConcurrentLinkedQueue<>();
-    private final UserService userService;
+    private final GenerateFakeDataService generateFakeDataService;
 
     @Autowired
-    public WebSocketBroadcaster(UserService userService) {
-        this.userService = userService;
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleAtFixedRate(this::notifySessions, 0, 15, TimeUnit.SECONDS);
+    public WebSocketBroadcaster(GenerateFakeDataService generateFakeDataService) {
+        this.generateFakeDataService = generateFakeDataService;
+//        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+//        executorService.scheduleAtFixedRate(this::notifySessions, 0, 15, TimeUnit.SECONDS);
     }
 
     @Override
@@ -65,7 +66,7 @@ public class WebSocketBroadcaster extends TextWebSocketHandler {
         int n = 10;
         for (WebSocketSession session : sessions) {
             try {
-                userService.generateUsers(n);
+                generateFakeDataService.generateUsers(n);
                 session.sendMessage(new TextMessage("Your periodic message"));
             } catch (IOException e) {
                 e.printStackTrace();

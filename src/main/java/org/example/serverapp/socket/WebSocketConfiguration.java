@@ -1,5 +1,6 @@
 package org.example.serverapp.socket;
 
+import org.example.serverapp.service.GenerateFakeDataService;
 import org.example.serverapp.service.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
@@ -8,15 +9,15 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocket
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
-    private final UserService userService;
+    private final GenerateFakeDataService generateFakeDataService;
 
-    public WebSocketConfiguration(UserService userService) {
-        this.userService = userService;
+    public WebSocketConfiguration(GenerateFakeDataService generateFakeDataService) {
+        this.generateFakeDataService = generateFakeDataService;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new WebSocketBroadcaster(userService), "/websocket-broadcaster")
+        registry.addHandler(new WebSocketBroadcaster(generateFakeDataService), "/websocket-broadcaster")
                 .setAllowedOrigins("*");
     }
 }

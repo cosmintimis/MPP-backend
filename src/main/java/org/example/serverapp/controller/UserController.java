@@ -35,8 +35,8 @@ public class UserController {
     @GetMapping
     public ResponseEntity<UserListWithSizeDto> getAllUsers(@RequestParam(required = false) String sortedByUsername,
                                                            @RequestParam(required = false) String searchByUsername,
-                                                           @RequestParam(required = false) Integer limit,
-                                                           @RequestParam(required = false) Integer skip,
+                                                           @RequestParam(required = false) Integer pageSize,
+                                                           @RequestParam(required = false) Integer currentPage,
                                                            @RequestParam(required = false) LocalDate startBirthDate,
                                                            @RequestParam(required = false) LocalDate endBirthDate
                                                            ){
@@ -45,15 +45,15 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid sortedByUsername parameter");
         }
 
-        if(limit != null && skip == null){
+        if(pageSize != null && currentPage == null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "If limit is provided, skip must be provided too");
         }
 
-        if(limit == null && skip != null){
+        if(pageSize == null && currentPage != null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "If skip is provided, limit must be provided too");
         }
 
-        if(limit != null && (limit < 0 || skip < 0 || limit > 1000)){
+        if(pageSize != null && (pageSize < 0 || currentPage < 0 || pageSize > 1000)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid limit or skip parameter");
         }
 
@@ -65,7 +65,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "If startBirthDate is provided, endBirthDate must be provided too");
         }
 
-        return ResponseEntity.ok(userService.getUserListWithSize(sortedByUsername, searchByUsername, limit, skip, startBirthDate, endBirthDate));
+        return ResponseEntity.ok(userService.getUserListWithSize(sortedByUsername, searchByUsername, pageSize, currentPage, startBirthDate, endBirthDate));
 
     }
 

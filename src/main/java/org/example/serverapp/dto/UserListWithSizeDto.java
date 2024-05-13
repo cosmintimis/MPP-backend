@@ -15,5 +15,5 @@ import java.util.List;
 @AllArgsConstructor
 public class UserListWithSizeDto {
     List<User> users;
-    int size;
+    long size;
 }
