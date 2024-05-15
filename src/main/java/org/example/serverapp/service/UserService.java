@@ -1,7 +1,6 @@
 package org.example.serverapp.service;
 
 import com.github.javafaker.Faker;
-import org.example.serverapp.dto.UserDto;
 import org.example.serverapp.dto.UserListWithSizeDto;
 import org.example.serverapp.entity.User;
 import org.example.serverapp.repository.UserRepositoryDB;
@@ -126,6 +125,9 @@ public class UserService {
         );
 
         for (User user : users) {
+            if(user.getBirthdate() == null) {
+                continue;
+            }
             int year = user.getBirthdate().getYear();
             if(birthsPerYear.containsKey(year)){
                 birthsPerYear.put(year, birthsPerYear.get(year) + 1);

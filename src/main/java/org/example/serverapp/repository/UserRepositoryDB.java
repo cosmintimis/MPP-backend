@@ -1,18 +1,14 @@
 package org.example.serverapp.repository;
 
 import jakarta.annotation.Nullable;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
 import org.example.serverapp.entity.User;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Repository
 public interface UserRepositoryDB extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User> {
@@ -39,4 +35,10 @@ public interface UserRepositoryDB extends JpaRepository<User, Integer>, JpaSpeci
 
         }
     }
+
+    Optional<User> findByUsername(String username);
+
+    Boolean existsByUsername(String username);
+
+    Boolean existsByEmail(String email);
 }

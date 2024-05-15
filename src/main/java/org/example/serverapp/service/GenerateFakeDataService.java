@@ -74,15 +74,12 @@ public class GenerateFakeDataService {
 
         firstId = users.get(0).getId();
 
+        List<Product> products = new ArrayList<>();
         for (User user : users)  {
             user.setId(firstId);
             firstId++;
-            List<Product> products = generateProducts(10, user);
-            productRepositoryDB.saveAllAndFlush(products);
+            products.addAll(generateProducts(10, user));
         }
-
-
-
-
+        productRepositoryDB.saveAllAndFlush(products);
     }
 }
