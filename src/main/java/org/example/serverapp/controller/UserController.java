@@ -25,7 +25,7 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> addUser(@RequestBody User user) {
-        return new ResponseEntity<>(userService.addUser(user), HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.registerUser(user), HttpStatus.CREATED);
     }
 
     @GetMapping("{id}")
@@ -35,7 +35,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasRole('MANAGER')")
     public ResponseEntity<UserListWithSizeDto> getAllUsers(@RequestParam(required = false) String sortedByUsername,
                                                            @RequestParam(required = false) String searchByUsername,
                                                            @RequestParam(required = false) Integer pageSize,
@@ -73,7 +73,7 @@ public class UserController {
     }
 
     @GetMapping("/births-per-year")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasRole('MANAGER')")
     public ResponseEntity<Map<Integer, Integer>> getBirthsPerYear() {
         return ResponseEntity.ok(userService.getBirthsPerYear());
     }
@@ -81,7 +81,6 @@ public class UserController {
     @PutMapping("{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User updatedUser) {
-        /// handle bad request and not found id
         return ResponseEntity.ok(userService.updateUser(id, updatedUser));
     }
 

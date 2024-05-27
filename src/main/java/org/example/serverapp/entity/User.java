@@ -1,6 +1,10 @@
 package org.example.serverapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +31,8 @@ public class User {
     private Integer id;
 
     private String username;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String email;
     private String avatar;
@@ -39,13 +45,14 @@ public class User {
     @JsonManagedReference
     private List<Product> products;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinTable(  name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public User(String username, String password, String email, String avatar, LocalDate birthdate, Double rating, String address) {
+
+    public User(String username, String password, String email, String avatar, LocalDate birthdate, Double rating, String address, Set<Role> roles) {
         this.username = username;
         this.password = password;
         this.email = email;
@@ -53,6 +60,7 @@ public class User {
         this.birthdate = birthdate;
         this.rating = rating;
         this.address = address;
+        this.roles = roles;
     }
 
     public User(String username, String email, String password){
@@ -60,5 +68,4 @@ public class User {
         this.email = email;
         this.password = password;
     }
-
 }

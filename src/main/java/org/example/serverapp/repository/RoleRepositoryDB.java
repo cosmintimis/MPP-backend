@@ -16,4 +16,5 @@ public interface RoleRepositoryDB extends JpaRepository<Role, Long> {
     @Transactional
     @Query(value = "INSERT INTO user_roles (user_id, role_id) VALUES (:userId, :roleId)", nativeQuery = true)
     void mapRoleToUser(Integer userId, Long roleId);
+
 }
